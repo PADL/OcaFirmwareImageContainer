@@ -8,7 +8,7 @@ Integers are encoded in little-endian byte order. This is a change from OCP.1, b
 
 ```c
 struct {
-    OcaUint32       magicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0x0041434F
+    OcaUint32       magicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0xCFF1_A00C
     OcaUint32       headerVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
     OcaUint16       headerSize;         // size of this structure in octets, 24
     OcaBitSet16     headerFlags;        // flags, unknown flags MUST be ignored
