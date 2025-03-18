@@ -8,34 +8,34 @@ Integers are encoded in little-endian byte order. This is a change from OCP.1, b
 
 ```c
 struct {
-    OcaUint32       magicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0xCFF1_A00C
-    OcaUint32       headerVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
-    OcaUint16       headerSize;         // size of this structure in octets, 24
-    OcaBitSet16     headerFlags;        // flags, unknown flags MUST be ignored
-    OcaUint16       componentCount;     // number of component descriptors
-    OcaModelGUID    modelGUID;          // device this container applies to
-    OcaBlobFixedLen<4> modelCodeMask;   // relevant bits of device modelGUID.modelCode to check
+    OcaUint32       MagicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0xCFF1_A00C
+    OcaUint32       HeaderVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
+    OcaUint16       HeaderSize;         // size of this structure in octets, 24
+    OcaBitSet16     HeaderFlags;        // flags, unknown flags MUST be ignored
+    OcaUint16       ComponentCount;     // number of component descriptors
+    OcaModelGUID    ModelGUID;          // device this container applies to
+    OcaBlobFixedLen<4> ModelCodeMask;   // relevant bits of device modelGUID.modelCode to check
 } OcaFirmwareImageContainerHeader;
 
 struct {
-    OcaComponent    component;          // component ID this image applies to
-    OcaBitSet16     flags;              // flags, unknown flags MUST be ignored
-    OcaUint32       major;              // major version of firmware image
-    OcaUint32       minor;              // minor version of firmware image
-    OcaUint32       build;              // build version of firmware image
-    OcaUint64       imageOffset;        // offset from start of container to image data
-    OcaUint64       imageSize;          // length of image data
-    OcaUint64       verifyOffset;       // offset from start of container to verify data
-    OcaUint64       verifySize;         // length of verify data
+    OcaComponent    Component;          // component ID this image applies to
+    OcaBitSet16     Flags;              // flags, unknown flags MUST be ignored
+    OcaUint32       Major;              // major version of firmware image
+    OcaUint32       Minor;              // minor version of firmware image
+    OcaUint32       Build;              // build version of firmware image
+    OcaUint64       ImageOffset;        // offset from start of container to image data
+    OcaUint64       ImageSize;          // length of image data
+    OcaUint64       VerifyOffset;       // offset from start of container to verify data
+    OcaUint64       VerifySize;         // length of verify data
 } OcaFirmwareImageContainerComponentDescriptor;
 
 struct {
     // offset: 0
-    OcaFirmwareImageContainerHeader                 header;
+    OcaFirmwareImageContainerHeader                 Header;
     // offset: header.headerSize
-    OcaFirmwareImageContainerComponentDescriptor    componentDescriptors[header.componentCount];
+    OcaFirmwareImageContainerComponentDescriptor    ComponentDescriptors[header.componentCount];
     // offset: header.headerSize + (header.componentCount * 48)
-    OcaUint8                                        componentPayloads[];
+    OcaUint8                                        ComponentPayloads[];
 } OcaFirmwareImageContainer;
 ```
 
