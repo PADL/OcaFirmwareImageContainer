@@ -43,11 +43,9 @@ A firmware image container file consists of a single `OcaFirmwareImageContainerH
 
 There MUST be no more than one component descriptor for a given component ID (i.e. duplicate component IDs are not permitted).
 
-No flags are defined at present.
+A single flag, 0x1, is defined indicating that the component descriptor is to be processed locally and not sent to the device.
 
-The following component is defined for controller-side integrity verification. Controllers MUST validate that the container matches the model GUID of the device (after masking with modelCodeMask) as well as the container checksum. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data.
-
-`OcaFirmwareImageContainerSHA512ChecksumComponent` has the value `0x8001`.
+The following component is defined for controller-side integrity verification. Controllers MUST validate that the container matches the model GUID of the device (after masking with modelCodeMask) as well as the container checksum. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data. The local flag MUST be set on the checksum component descriptor.
 
 Pseudo-code for calculating the checksum is provided below:
 

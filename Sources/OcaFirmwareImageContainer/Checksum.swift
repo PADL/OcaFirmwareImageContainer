@@ -66,7 +66,8 @@ final class _OcaFirmwareImageContainerSHA512Checksum: OcaFirmwareImageComponent 
 
   var descriptor: OcaFirmwareImageContainerComponentDescriptor {
     OcaFirmwareImageContainerComponentDescriptor(
-      component: OcaFirmwareImageContainerSHA512ChecksumComponent
+      component: OcaFirmwareImageContainerSHA512ChecksumComponent,
+      flags: .local
     )
   }
 

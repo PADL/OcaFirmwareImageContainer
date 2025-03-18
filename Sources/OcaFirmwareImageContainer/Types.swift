@@ -148,6 +148,8 @@ public struct OcaFirmwareImageContainerComponentDescriptor: _OcaFirmwareImageCon
     public init(rawValue: OcaBitSet16) {
       self.rawValue = rawValue
     }
+
+    public static let local = Flags(rawValue: 1 << 0)
   }
 
   public let component: OcaComponent
