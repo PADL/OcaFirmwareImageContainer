@@ -29,11 +29,11 @@ final class OcaFirmwareImageContainerTests: XCTestCase {
   func testImageDecoding() async throws {
     let decoded = try await OcaFirmwareImageContainerMemoryReader.decode(bytes: testVector)
     XCTAssertEqual(decoded.componentCount, 2)
-    try decoded
+    try await decoded
       .withComponent(OcaFirmwareImageContainerSHA512ChecksumComponent) { descriptor, _, _ in
         XCTAssertEqual(descriptor.component, OcaFirmwareImageContainerSHA512ChecksumComponent)
       }
-    try decoded.withComponent(7) { descriptor, imageData, verifyData in
+    try await decoded.withComponent(7) { descriptor, imageData, verifyData in
       XCTAssertEqual(descriptor.component, 7)
       XCTAssertEqual(Array(imageData), [0xFE, 0xED, 0xFA, 0xCE])
       XCTAssertEqual(verifyData, [0xCA, 0xFE, 0xBA, 0xBE])

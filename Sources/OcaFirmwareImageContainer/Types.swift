@@ -20,14 +20,14 @@ extension OcaModelGUID: _OcaFirmwareImageContainerEncodable {
 }
 
 extension OcaModelGUID: _OcaFirmwareImageContainerDecodable {
-  static func decode(from context: inout any _OcaFirmwareImageContainerReader) throws
+  static func decode(from context: inout any _OcaFirmwareImageContainerReader) async throws
     -> OcaModelGUID
   {
-    let reserved: OcaUint8 = try context.decode()
-    let mfrCode_id_0: OcaUint8 = try context.decode()
-    let mfrCode_id_1: OcaUint8 = try context.decode()
-    let mfrCode_id_2: OcaUint8 = try context.decode()
-    let modelCode: OcaUint32 = try context.decode()
+    let reserved: OcaUint8 = try await context.decode()
+    let mfrCode_id_0: OcaUint8 = try await context.decode()
+    let mfrCode_id_1: OcaUint8 = try await context.decode()
+    let mfrCode_id_2: OcaUint8 = try await context.decode()
+    let modelCode: OcaUint32 = try await context.decode()
 
     return Self(
       reserved: reserved,
@@ -106,25 +106,25 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
     try context.encode(integer: modelCodeMask)
   }
 
-  static func decode(from context: inout _OcaFirmwareImageContainerReader) throws -> Self {
-    let magicNumber: OcaUint32 = try context.decode()
+  static func decode(from context: inout _OcaFirmwareImageContainerReader) async throws -> Self {
+    let magicNumber: OcaUint32 = try await context.decode()
     guard magicNumber == Self.OcaFirmwareImageContainerHeaderMagicNumber else {
       throw OcaFirmwareImageContainerError.invalidMagicNumber
     }
-    let headerVersion: OcaUint16 = try context.decode()
+    let headerVersion: OcaUint16 = try await context.decode()
     guard headerVersion == Self.OcaFirmwareImageContainerHeaderVersion1 else {
       throw OcaFirmwareImageContainerError.unknownHeaderVersion
     }
-    let headerSize: OcaUint16 = try context.decode()
+    let headerSize: OcaUint16 = try await context.decode()
     guard headerSize >= Self.Size else {
       throw OcaFirmwareImageContainerError.invalidHeaderSize
     }
-    let headerFlags: Flags = try Flags(rawValue: context.decode())
-    let componentCount: OcaUint16 = try context.decode()
-    let modelGUID: OcaModelGUID = try OcaModelGUID.decode(from: &context)
-    let modelCodeMask: OcaUint32 = try context.decode()
+    let headerFlags: Flags = try await Flags(rawValue: context.decode())
+    let componentCount: OcaUint16 = try await context.decode()
+    let modelGUID: OcaModelGUID = try await OcaModelGUID.decode(from: &context)
+    let modelCodeMask: OcaUint32 = try await context.decode()
     let unknownBytes = Int(headerSize) - Self.Size
-    try _ = context.decode(count: unknownBytes) { _ in }
+    try await _ = context.decode(count: unknownBytes) { _ in }
     return Self(
       headerFlags: headerFlags,
       componentCount: componentCount,
@@ -202,22 +202,22 @@ public struct OcaFirmwareImageContainerComponentDescriptor: _OcaFirmwareImageCon
     try context.encode(integer: verifySize)
   }
 
-  static func decode(from context: inout _OcaFirmwareImageContainerReader) throws -> Self {
-    let component: OcaComponent = try context.decode()
-    let flags: Flags = try Flags(rawValue: context.decode())
+  static func decode(from context: inout _OcaFirmwareImageContainerReader) async throws -> Self {
+    let component: OcaComponent = try await context.decode()
+    let flags: Flags = try await Flags(rawValue: context.decode())
 
-    let major: OcaUint32 = try context.decode()
-    let minor: OcaUint32 = try context.decode()
-    let build: OcaUint32 = try context.decode()
+    let major: OcaUint32 = try await context.decode()
+    let minor: OcaUint32 = try await context.decode()
+    let build: OcaUint32 = try await context.decode()
 
-    let imageOffset: OcaUint64 = try context.decode()
-    let imageSize: OcaUint64 = try context.decode()
+    let imageOffset: OcaUint64 = try await context.decode()
+    let imageSize: OcaUint64 = try await context.decode()
     guard imageOffset + imageSize <= context.size else {
       throw OcaFirmwareImageContainerError.invalidImageSize
     }
 
-    let verifyOffset: OcaUint64 = try context.decode()
-    let verifySize: OcaUint64 = try context.decode()
+    let verifyOffset: OcaUint64 = try await context.decode()
+    let verifySize: OcaUint64 = try await context.decode()
     guard verifyOffset + verifySize <= context.size else {
       throw OcaFirmwareImageContainerError.invalidVerifySize
     }

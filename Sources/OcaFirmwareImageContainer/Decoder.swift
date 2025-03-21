@@ -10,7 +10,7 @@
 import SwiftOCA
 
 protocol _OcaFirmwareImageContainerDecodable {
-  static func decode(from context: inout _OcaFirmwareImageContainerReader) throws -> Self
+  static func decode(from context: inout _OcaFirmwareImageContainerReader) async throws -> Self
 }
 
 protocol _OcaFirmwareImageContainerReader {
@@ -20,19 +20,22 @@ protocol _OcaFirmwareImageContainerReader {
   mutating func read<T>(
     count: Int,
     at offset: Int,
-    _ body: (UnsafeBufferPointer<UInt8>) throws -> T
-  ) throws -> T
+    _ body: (UnsafeBufferPointer<UInt8>) async throws -> T
+  ) async throws -> T
 }
 
 extension _OcaFirmwareImageContainerReader {
-  mutating func decode(count: Int, _ body: (UnsafeBufferPointer<UInt8>) throws -> ()) throws {
-    try read(count: count, at: index, body)
+  mutating func decode(
+    count: Int,
+    _ body: (UnsafeBufferPointer<UInt8>) async throws -> ()
+  ) async throws {
+    try await read(count: count, at: index, body)
     index += count
   }
 
-  mutating func decode<T: FixedWidthInteger>(integerAt offset: Int? = nil) throws -> T {
+  mutating func decode<T: FixedWidthInteger>(integerAt offset: Int? = nil) async throws -> T {
     var value = T()
-    try decode(count: MemoryLayout<T>.size) { bytes in
+    try await decode(count: MemoryLayout<T>.size) { bytes in
       withUnsafeMutableBytes(of: &value) { valuePtr in
         valuePtr.copyBytes(from: bytes)
       }
@@ -56,29 +59,35 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
     header: OcaFirmwareImageContainerHeader,
     componentDescriptors: [OcaFirmwareImageContainerComponentDescriptor],
     context: _OcaFirmwareImageContainerReader
-  ) throws {
+  ) async throws {
     self.header = header
     self.componentDescriptors = componentDescriptors
     self.context = context
 
-    try verifyAggregateImageChecksum()
+    try await verifyAggregateImageChecksum()
   }
 
-  static func decode(from context: inout any _OcaFirmwareImageContainerReader) throws -> Self {
-    let header = try OcaFirmwareImageContainerHeader.decode(from: &context)
+  static func decode(from context: inout any _OcaFirmwareImageContainerReader) async throws
+    -> Self
+  {
+    let header = try await OcaFirmwareImageContainerHeader.decode(from: &context)
     var componentDescriptors = [OcaFirmwareImageContainerComponentDescriptor]()
     for _ in 0..<header.componentCount {
-      try componentDescriptors
+      try await componentDescriptors
         .append(OcaFirmwareImageContainerComponentDescriptor.decode(from: &context))
     }
-    return try Self(header: header, componentDescriptors: componentDescriptors, context: context)
+    return try await Self(
+      header: header,
+      componentDescriptors: componentDescriptors,
+      context: context
+    )
   }
 
   public typealias ComponentCallback<T> = (
     OcaFirmwareImageContainerComponentDescriptor,
     UnsafeBufferPointer<UInt8>,
     [UInt8]
-  ) throws -> T
+  ) async throws -> T
 
   public var componentCount: Int {
     componentDescriptors.count
@@ -87,32 +96,32 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
   public func withComponent<T>(
     at index: Int,
     _ body: ComponentCallback<T>
-  ) throws -> T {
+  ) async throws -> T {
     guard index < componentDescriptors.count else {
       throw OcaFirmwareImageContainerError.invalidComponentIndex
     }
 
     let componentDescriptor = componentDescriptors[index]
-    let verifyData = try context.read(
+    let verifyData = try await context.read(
       count: Int(componentDescriptor.verifySize),
       at: Int(componentDescriptor.verifyOffset)
     ) { Array($0) }
 
-    return try context.read(
+    return try await context.read(
       count: Int(componentDescriptor.imageSize),
       at: Int(componentDescriptor.imageOffset)
     ) { image in
-      try body(componentDescriptor, image, verifyData)
+      try await body(componentDescriptor, image, verifyData)
     }
   }
 
   public func withComponent<T>(
     _ component: OcaComponent,
     _ body: ComponentCallback<T>
-  ) throws -> T {
+  ) async throws -> T {
     for i in 0..<componentCount {
       guard componentDescriptors[i].component == component else { continue }
-      return try withComponent(at: i, body)
+      return try await withComponent(at: i, body)
     }
 
     print("OcaFirmwareImageContainerDecoder: failed to find component '\(component)'")

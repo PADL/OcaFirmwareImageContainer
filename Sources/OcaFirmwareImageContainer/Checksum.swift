@@ -24,7 +24,7 @@ extension _OcaFirmwareImageContainerEncodable {
 }
 
 extension OcaFirmwareImageContainerDecoder {
-  func verifyAggregateImageChecksum() throws {
+  func verifyAggregateImageChecksum() async throws {
     var digest = SHA512()
 
     try header.update(digest: &digest)
@@ -33,13 +33,13 @@ extension OcaFirmwareImageContainerDecoder {
       try componentDescriptor.update(digest: &digest)
       guard componentDescriptor.component != OcaFirmwareImageContainerSHA512ChecksumComponent
       else { continue }
-      try context.read(
+      try await context.read(
         count: Int(componentDescriptor.imageSize),
         at: Int(componentDescriptor.imageOffset)
       ) { bytes in
         digest.update(data: bytes)
       }
-      try context.read(
+      try await context.read(
         count: Int(componentDescriptor.verifySize),
         at: Int(componentDescriptor.verifyOffset)
       ) { bytes in
@@ -49,7 +49,7 @@ extension OcaFirmwareImageContainerDecoder {
 
     let checksum = digest.finalize()
 
-    try withComponent(OcaFirmwareImageContainerSHA512ChecksumComponent) { _, _, verifyData in
+    try await withComponent(OcaFirmwareImageContainerSHA512ChecksumComponent) { _, _, verifyData in
       guard verifyData == Array(checksum) else {
         throw OcaFirmwareImageContainerError.checksumVerificationFailed
       }

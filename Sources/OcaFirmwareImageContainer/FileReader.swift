@@ -29,7 +29,7 @@ public final class OcaFirmwareImageContainerFileReader: _OcaFirmwareImageContain
     var this: any _OcaFirmwareImageContainerReader = try await Self(
       file: file
     )
-    return try OcaFirmwareImageContainerDecoder.decode(from: &this)
+    return try await OcaFirmwareImageContainerDecoder.decode(from: &this)
   }
 
   init(file: String) async throws {
@@ -39,11 +39,12 @@ public final class OcaFirmwareImageContainerFileReader: _OcaFirmwareImageContain
   func read<T>(
     count: Int,
     at offset: Int,
-    _ body: (UnsafeBufferPointer<UInt8>) throws -> T
-  ) throws -> T {
+    _ body: (UnsafeBufferPointer<UInt8>) async throws -> T
+  ) async throws -> T {
     guard data.count >= offset + count else {
       throw OcaFirmwareImageContainerError.invalidOffset
     }
-    return try data[offset..<(offset + count)].withUnsafeBufferPointer(body)
+    let slice = data[offset..<(offset + count)].withUnsafeBufferPointer { $0 }
+    return try await body(slice)
   }
 }
