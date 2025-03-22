@@ -16,6 +16,10 @@ let package = Package(
       name: "OcaFirmwareImageContainer",
       targets: ["OcaFirmwareImageContainer"]
     ),
+    .executable(
+      name: "ocafw-dump-image",
+      targets: ["OcaFWDumpImage"]
+    ),
   ],
   dependencies: [
     .package(url: "https://github.com/PADL/SwiftOCA", branch: "main"),
@@ -32,6 +36,10 @@ let package = Package(
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "SystemPackage", package: "swift-system"),
       ]
+    ),
+    .executableTarget(
+      name: "OcaFWDumpImage",
+      dependencies: ["OcaFirmwareImageContainer"]
     ),
     .testTarget(
       name: "OcaFirmwareImageContainerTests",
