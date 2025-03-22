@@ -35,7 +35,7 @@ public final class InfernoFirmwareTool {
     guard CommandLine.arguments.count > 1 else { usage() }
     for urlString in CommandLine.arguments[1...] {
       guard let url = URL(string: urlString) else { usage() }
-      
+
       let decoder = try await OcaFirmwareImageContainerURLReader.decode(url: url)
       print("Version:\t\(decoder.header.headerVersion.asHex)")
       print("Flags:\t\t\(decoder.header.headerFlags.rawValue.asHex)")
@@ -43,7 +43,7 @@ public final class InfernoFirmwareTool {
       print("Model mask:\t\(decoder.header.modelCodeMask.asHex)")
       print("--------------------------------------------------------")
 
-      try await decoder.withComponents { descriptor, imageData, verifyData in
+      try await decoder.withComponents { descriptor, _, _ in
         print("Component:\t\(descriptor.component.asHex)")
         print("Flags:\t\t\(descriptor.flags.rawValue.asHex)")
         print("Version:\t\(descriptor.major).\(descriptor.minor).\(descriptor.build)")
