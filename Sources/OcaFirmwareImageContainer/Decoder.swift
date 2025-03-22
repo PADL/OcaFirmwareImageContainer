@@ -134,4 +134,12 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
     print("OcaFirmwareImageContainerDecoder: failed to find component '\(component)'")
     throw OcaFirmwareImageContainerError.unknownComponent
   }
+  
+  public func withComponents(
+    _ body: ComponentCallback<Void>
+  ) async throws {
+    for i in 0..<componentCount {
+      try await withComponent(at: i, body)
+    }
+  }
 }
