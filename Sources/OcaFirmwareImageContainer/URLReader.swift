@@ -38,6 +38,7 @@ public final class OcaFirmwareImageContainerURLReader: _OcaFirmwareImageContaine
   init(url: URL) async throws {
     #if canImport(FoundationNetworking)
     let (data, _) = try await URLSession.shared.data(from: url)
+    self.data = Array(data)
     #else
     let (bytes, _) = try await URLSession.shared.bytes(from: url)
     self.data = try await Array(bytes)
