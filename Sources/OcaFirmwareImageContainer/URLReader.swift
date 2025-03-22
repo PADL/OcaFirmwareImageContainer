@@ -8,6 +8,9 @@
  */
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import SystemPackage
 
 private func readContents(of file: String) async throws -> [UInt8] {
@@ -16,7 +19,7 @@ private func readContents(of file: String) async throws -> [UInt8] {
   return Array(data)
 }
 
-public final class OcaFirmwareImageContainerFileReader: _OcaFirmwareImageContainerReader {
+public final class OcaFirmwareImageContainerURLReader: _OcaFirmwareImageContainerReader {
   let data: [UInt8]
   var index = 0
   var size: Int {
@@ -24,16 +27,21 @@ public final class OcaFirmwareImageContainerFileReader: _OcaFirmwareImageContain
   }
 
   public static func decode(
-    file: String
+    url: URL
   ) async throws -> OcaFirmwareImageContainerDecoder {
     var this: any _OcaFirmwareImageContainerReader = try await Self(
-      file: file
+      url: url
     )
     return try await OcaFirmwareImageContainerDecoder.decode(from: &this)
   }
 
-  init(file: String) async throws {
-    data = try await readContents(of: file)
+  init(url: URL) async throws {
+    #if canImport(FoundationNetworking)
+    let (data, _) = try await URLSession.shared.data(from: url)
+    #else
+    let (bytes, _) = try await URLSession.shared.bytes(from: url)
+    self.data = try await Array(bytes)
+    #endif
   }
 
   func read<T>(
