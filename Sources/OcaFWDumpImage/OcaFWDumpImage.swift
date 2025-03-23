@@ -43,7 +43,7 @@ public final class InfernoFirmwareTool {
       print("Model mask:\t\(decoder.header.modelCodeMask.asHex)")
       print("--------------------------------------------------------")
 
-      try await decoder.withComponents { descriptor, _, _ in
+      for descriptor in decoder.componentDescriptors {
         print("Component:\t\(descriptor.component.asHex)")
         print("Flags:\t\t\(descriptor.flags.rawValue.asHex)")
         print("Version:\t\(descriptor.major).\(descriptor.minor).\(descriptor.build)")
