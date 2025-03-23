@@ -65,13 +65,16 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
   init(
     header: OcaFirmwareImageContainerHeader,
     componentDescriptors: [OcaFirmwareImageContainerComponentDescriptor],
-    context: _OcaFirmwareImageContainerReader
+    context: _OcaFirmwareImageContainerReader,
+    skipVerifyChecksum: Bool = false
   ) async throws {
     self.header = header
     self.componentDescriptors = componentDescriptors
     self.context = context
 
-    try await verifyAggregateImageChecksum()
+    if !skipVerifyChecksum {
+      try await verifyAggregateImageChecksum()
+    }
   }
 
   static func decode(from context: inout any _OcaFirmwareImageContainerReader) async throws
