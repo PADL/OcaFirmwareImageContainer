@@ -27,7 +27,7 @@ private func readContents(of file: String) async throws -> [UInt8] {
 }
 
 public final class OcaFirmwareImageContainerURLReader: _OcaFirmwareImageContainerReader {
-  let data: [UInt8]
+  let data: Data
   var index = 0
   var size: Int {
     data.count
@@ -43,13 +43,17 @@ public final class OcaFirmwareImageContainerURLReader: _OcaFirmwareImageContaine
   }
 
   init(url: URL) async throws {
-    #if canImport(FoundationNetworking)
-    let (data, _) = try await URLSession.shared.data(from: url)
-    self.data = Array(data)
-    #else
-    let (bytes, _) = try await URLSession.shared.bytes(from: url)
-    self.data = try await Array(bytes)
-    #endif
+    if url.isFileURL {
+      data = try Data(contentsOf: url, options: .alwaysMapped)
+    } else {
+      #if canImport(FoundationNetworking)
+      let (data, _) = try await URLSession.shared.data(from: url)
+      self.data = data
+      #else
+      let (bytes, _) = try await URLSession.shared.bytes(from: url)
+      self.data = try await Data(bytes)
+      #endif
+    }
   }
 
   func read<T>(
@@ -60,7 +64,7 @@ public final class OcaFirmwareImageContainerURLReader: _OcaFirmwareImageContaine
     guard data.count >= offset + count else {
       throw OcaFirmwareImageContainerError.invalidOffset
     }
-    let slice = data[offset..<(offset + count)].withUnsafeBufferPointer { $0 }
-    return try await body(slice)
+    let slice = Array(data[offset..<(offset + count)])
+    return try await body(slice.withUnsafeBufferPointer { $0 })
   }
 }

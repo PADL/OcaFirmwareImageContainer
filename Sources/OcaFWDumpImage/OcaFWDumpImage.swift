@@ -36,22 +36,26 @@ public final class InfernoFirmwareTool {
     for urlString in CommandLine.arguments[1...] {
       guard let url = URL(string: urlString) else { usage() }
 
-      let decoder = try await OcaFirmwareImageContainerURLReader.decode(url: url)
-      print("Version:\t\(decoder.header.headerVersion.asHex)")
-      print("Flags:\t\t\(decoder.header.headerFlags.rawValue.asHex)")
-      print("Model GUID:\t0x\(decoder.header.modelGUID)")
-      print("Model mask:\t\(decoder.header.modelCodeMask.asHex)")
-      print("--------------------------------------------------------")
-
-      for descriptor in decoder.componentDescriptors {
-        print("Component:\t\(descriptor.component.asHex)")
-        print("Flags:\t\t\(descriptor.flags.rawValue.asHex)")
-        print("Version:\t\(descriptor.major).\(descriptor.minor).\(descriptor.build)")
-        print("Image offset:\t\(descriptor.imageOffset.asHex)")
-        print("Image size:\t\(descriptor.imageSize.asHex)")
-        print("Verify offset:\t\(descriptor.verifyOffset.asHex)")
-        print("Verify size:\t\(descriptor.verifySize.asHex)")
+      do {
+        let decoder = try await OcaFirmwareImageContainerURLReader.decode(url: url)
+        print("Version:\t\(decoder.header.headerVersion.asHex)")
+        print("Flags:\t\t\(decoder.header.headerFlags.rawValue.asHex)")
+        print("Model GUID:\t0x\(decoder.header.modelGUID)")
+        print("Model mask:\t\(decoder.header.modelCodeMask.asHex)")
         print("--------------------------------------------------------")
+
+        for descriptor in decoder.componentDescriptors {
+          print("Component:\t\(descriptor.component.asHex)")
+          print("Flags:\t\t\(descriptor.flags.rawValue.asHex)")
+          print("Version:\t\(descriptor.major).\(descriptor.minor).\(descriptor.build)")
+          print("Image offset:\t\(descriptor.imageOffset.asHex)")
+          print("Image size:\t\(descriptor.imageSize.asHex)")
+          print("Verify offset:\t\(descriptor.verifyOffset.asHex)")
+          print("Verify size:\t\(descriptor.verifySize.asHex)")
+          print("--------------------------------------------------------")
+        }
+      } catch {
+        print("Error decoding \(url): \(error)")
       }
     }
   }
