@@ -10,11 +10,11 @@ Integers are encoded in little-endian byte order. This is a change from OCP.1, b
 struct {
     OcaUint32       MagicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0xCFF1_A00C
     OcaUint32       HeaderVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
-    OcaUint16       HeaderSize;         // size of this structure in octets, 24
+    OcaUint16       HeaderSize;         // size of this structure including model GUID trailer
     OcaBitSet16     HeaderFlags;        // flags, unknown flags MUST be ignored
+    OcaUint16       ModelCount;         // number of models at end of header
     OcaUint16       ComponentCount;     // number of component descriptors
-    OcaModelGUID    ModelGUID;          // device this container applies to
-    OcaBlobFixedLen<4> ModelCodeMask;   // relevant bits of device modelGUID.modelCode to check
+    OcaModelGUID    Models[];           // devices this container applies to
 } OcaFirmwareImageContainerHeader;
 
 struct {
@@ -43,7 +43,10 @@ A firmware image container file consists of a single `OcaFirmwareImageContainerH
 
 There MUST be no more than one component descriptor for a given component ID (i.e. duplicate component IDs are not permitted).
 
-A single flag, 0x1, is defined indicating that the component descriptor is to be processed locally and not sent to the device.
+Two component descriptor flags are defined:
+
+`local (0x1)`: indicates that the component descriptor is to be processed locally and not sent to the device
+`critical (0x2)`: indicates that a local component descriptor MUST be understood by the controller
 
 The following component is defined for controller-side integrity verification. Controllers MUST validate that the container matches the model GUID of the device (after masking with modelCodeMask) as well as the container checksum. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data. The local flag MUST be set on the checksum component descriptor.
 

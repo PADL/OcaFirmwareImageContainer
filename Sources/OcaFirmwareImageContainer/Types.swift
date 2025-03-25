@@ -48,9 +48,9 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
   _OcaFirmwareImageContainerDecodable,
   CustomStringConvertible
 {
-  public static let OcaFirmwareImageContainerHeaderVersion1: OcaUint16 = 0x0101
-  public static let OcaFirmwareImageContainerHeaderMagicNumber: OcaUint32 = 0xCFF1_A00C
-  public static let Size = 24
+  private static let OcaFirmwareImageContainerHeaderVersion1: OcaUint32 = 0x0000_0001
+  private static let OcaFirmwareImageContainerHeaderMagicNumber: OcaUint32 = 0xCFF1_A00C
+  private static let Size = 16 // without model GUID trailer
 
   public struct Flags: OptionSet {
     public typealias RawValue = OcaBitSet16
@@ -62,45 +62,35 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
     }
   }
 
-  // offset: 0
-  public let magicNumber: OcaUint32
-  // offset: 4
-  public let headerVersion: OcaUint16
-  // offset: 6
-  public let headerSize: OcaUint16
-  // offset: 8
+  // offset: 0, length: 4
+  public var magicNumber: OcaUint32 { Self.OcaFirmwareImageContainerHeaderMagicNumber }
+  // offset: 4, length: 2
+  public let headerVersion: OcaUint32
+  // offset: 8, length: 2
+  public var headerSize: OcaUint16 { OcaUint16(Self.Size) + modelCount * 8 }
+  // offset: 10, length: 2
   public let headerFlags: Flags // OcaBitSet16
-  // offset: 10
+  // offset: 12, length: 2
+  public var modelCount: OcaUint16 { OcaUint16(models.count) }
+  // offset: 14, length: 2
   public let componentCount: OcaUint16
-  // offset: 12
-  public let modelGUID: OcaModelGUID
-  // offset: 20
-  public let modelCodeMask: OcaUint32
+  // offset: 16, length: modelCount * 8
+  public let models: [OcaModelGUID]
 
   init(
-    magicNumber: OcaUint32 = Self.OcaFirmwareImageContainerHeaderMagicNumber,
-    headerVersion: OcaUint16 = Self.OcaFirmwareImageContainerHeaderVersion1,
-    headerSize: OcaUint16 = OcaUint16(Self.Size),
+    headerVersion: OcaUint32 = Self.OcaFirmwareImageContainerHeaderVersion1,
     headerFlags: Flags = .init(),
     componentCount: OcaUint16 = 0,
-    modelGUID: OcaModelGUID = OcaModelGUID(
-      reserved: 0,
-      mfrCode: .init(),
-      modelCode: 0
-    ),
-    modelCodeMask: OcaUint32 = 0xFFFF_FFFF
+    models: [OcaModelGUID] = []
   ) {
-    self.magicNumber = magicNumber
     self.headerVersion = headerVersion
-    self.headerSize = headerSize
     self.headerFlags = headerFlags
     self.componentCount = componentCount
-    self.modelGUID = modelGUID
-    self.modelCodeMask = modelCodeMask
+    self.models = models
   }
 
   public var description: String {
-    "OcaFirmwareImageContainerHeader(headerVersion: \(headerVersion), headerFlags: \(headerFlags), componentCount: \(componentCount), modelGUID: \(modelGUID), modelCodeMask: \(modelCodeMask)"
+    "OcaFirmwareImageContainerHeader(headerVersion: \(headerVersion), headerFlags: \(headerFlags), componentCount: \(componentCount), models: \(models))"
   }
 
   func encode(into context: inout _OcaFirmwareImageContainerWriter) throws {
@@ -108,9 +98,11 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
     try context.encode(integer: headerVersion)
     try context.encode(integer: headerSize)
     try context.encode(integer: headerFlags.rawValue)
+    try context.encode(integer: modelCount)
     try context.encode(integer: componentCount)
-    try modelGUID.encode(into: &context)
-    try context.encode(integer: modelCodeMask)
+    for model in models {
+      try model.encode(into: &context)
+    }
   }
 
   static func decode(from context: inout _OcaFirmwareImageContainerReader) async throws -> Self {
@@ -118,7 +110,7 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
     guard magicNumber == Self.OcaFirmwareImageContainerHeaderMagicNumber else {
       throw OcaFirmwareImageContainerError.invalidMagicNumber
     }
-    let headerVersion: OcaUint16 = try await context.decode()
+    let headerVersion: OcaUint32 = try await context.decode()
     guard headerVersion == Self.OcaFirmwareImageContainerHeaderVersion1 else {
       throw OcaFirmwareImageContainerError.unknownHeaderVersion
     }
@@ -127,16 +119,24 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
       throw OcaFirmwareImageContainerError.invalidHeaderSize
     }
     let headerFlags: Flags = try await Flags(rawValue: context.decode())
+    let modelCount: OcaUint16 = try await context.decode()
     let componentCount: OcaUint16 = try await context.decode()
-    let modelGUID: OcaModelGUID = try await OcaModelGUID.decode(from: &context)
-    let modelCodeMask: OcaUint32 = try await context.decode()
-    let unknownBytes = Int(headerSize) - Self.Size
+
+    guard Int(headerSize) >= Self.Size + Int(modelCount) * 8 else {
+      throw OcaFirmwareImageContainerError.invalidHeaderSize
+    }
+    var models = [OcaModelGUID]()
+    for _ in 0..<modelCount {
+      try await models.append(OcaModelGUID.decode(from: &context))
+    }
+
+    let unknownBytes = Int(headerSize) - Self.Size - Int(modelCount) * 8
     try await _ = context.decode(count: unknownBytes) { _ in }
+
     return Self(
       headerFlags: headerFlags,
       componentCount: componentCount,
-      modelGUID: modelGUID,
-      modelCodeMask: modelCodeMask
+      models: models
     )
   }
 }
@@ -145,7 +145,7 @@ public struct OcaFirmwareImageContainerComponentDescriptor: _OcaFirmwareImageCon
   _OcaFirmwareImageContainerDecodable,
   CustomStringConvertible
 {
-  public static let Size = 48
+  static let Size = 48
 
   public struct Flags: OptionSet {
     public typealias RawValue = OcaBitSet16

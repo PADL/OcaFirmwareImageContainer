@@ -53,11 +53,11 @@ public final class OcaFirmwareImageContainerMemoryWriter: _OcaFirmwareImageConta
 
   public static func encode(
     flags: OcaFirmwareImageContainerHeader.Flags = .init(),
-    modelGUID: OcaModelGUID = .init(
+    models: [OcaModelGUID] = [.init(
       reserved: 0,
       mfrCode: .init(),
       modelCode: 0
-    ),
+    )],
     components: [OcaFirmwareImageContainerMemoryComponent] = []
   ) throws
     -> [UInt8]
@@ -66,7 +66,7 @@ public final class OcaFirmwareImageContainerMemoryWriter: _OcaFirmwareImageConta
 
     let encoder = try OcaFirmwareImageContainerEncoder(
       headerFlags: flags,
-      modelGUID: modelGUID,
+      models: models,
       components: components
     )
     try encoder.encode(into: &this)

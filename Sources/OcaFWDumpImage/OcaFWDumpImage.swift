@@ -40,10 +40,11 @@ public final class InfernoFirmwareTool {
         let decoder = try await OcaFirmwareImageContainerURLReader.decode(url: url)
         print("Version:\t\(decoder.header.headerVersion.asHex)")
         print("Flags:\t\t\(decoder.header.headerFlags.rawValue.asHex)")
-        print("Model GUID:\t0x\(decoder.header.modelGUID)")
-        print("Model mask:\t\(decoder.header.modelCodeMask.asHex)")
+        let modelStrings = decoder.header.models.map { model in
+          "\t0x\(model)\n"
+        }
+        print("Models:\(modelStrings)")
         print("--------------------------------------------------------")
-
         for descriptor in decoder.componentDescriptors {
           print("Component:\t\(descriptor.component.asHex)")
           print("Flags:\t\t\(descriptor.flags.rawValue.asHex)")

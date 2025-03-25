@@ -125,7 +125,7 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
     }
   }
 
-  public func withComponent<T>(
+  public func withFirstComponent<T>(
     _ component: OcaComponent,
     _ body: ComponentCallback<T>
   ) async throws -> T {

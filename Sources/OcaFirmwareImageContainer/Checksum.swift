@@ -56,7 +56,7 @@ extension OcaFirmwareImageContainerDecoder {
 
     let checksum = digest.finalize()
 
-    try await withComponent(OcaFirmwareImageContainerSHA512ChecksumComponent) { _, _, verifyData in
+    try await withFirstComponent(OcaFirmwareImageContainerSHA512ChecksumComponent) { _, _, verifyData in
       guard verifyData == Array(checksum) else {
         throw OcaFirmwareImageContainerError.checksumVerificationFailed
       }

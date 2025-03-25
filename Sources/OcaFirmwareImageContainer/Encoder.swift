@@ -75,7 +75,7 @@ final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodabl
   CustomStringConvertible
 {
   public let headerFlags: OcaFirmwareImageContainerHeader.Flags
-  public let modelGUID: OcaModelGUID // OcaUint32
+  public let models: [OcaModelGUID]
   public private(set) var components: [OcaFirmwareImageComponent] = []
   var context: _OcaFirmwareImageContainerWriter? = nil
   var _componentsDescriptorsWithOffsets: [
@@ -89,11 +89,11 @@ final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodabl
 
   init(
     headerFlags: OcaFirmwareImageContainerHeader.Flags,
-    modelGUID: OcaModelGUID,
+    models: [OcaModelGUID],
     components: [OcaFirmwareImageComponent]
   ) throws {
     self.headerFlags = headerFlags
-    self.modelGUID = modelGUID
+    self.models = models
     self.components = components + [_OcaFirmwareImageContainerSHA512Checksum(encoder: self)]
   }
 
@@ -101,7 +101,7 @@ final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodabl
     OcaFirmwareImageContainerHeader(
       headerFlags: headerFlags,
       componentCount: OcaUint16(components.count),
-      modelGUID: modelGUID
+      models: models
     )
   }
 
@@ -114,12 +114,13 @@ final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodabl
   }
 
   private static func _makeComponentDescriptorsWithOffsets(
+    header: OcaFirmwareImageContainerHeader,
     from components: [OcaFirmwareImageComponent]
   ) throws
     -> (OcaUint64, [OcaComponent: OcaFirmwareImageContainerComponentDescriptor])
   {
     var currentOffset = OcaUint64(
-      OcaFirmwareImageContainerHeader.Size + components
+      Int(header.headerSize) + components
         .count * OcaFirmwareImageContainerComponentDescriptor
         .Size
     )
@@ -161,14 +162,14 @@ final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodabl
   func encode(into context: inout _OcaFirmwareImageContainerWriter) throws {
     self.context = context
 
+    // header
+    let header = _headerForEncoding
     let imageSize: OcaUint64
     var componentDescriptorOffset: Int
 
     (imageSize, _componentsDescriptorsWithOffsets) = try Self
-      ._makeComponentDescriptorsWithOffsets(from: components)
+      ._makeComponentDescriptorsWithOffsets(header: _headerForEncoding, from: components)
 
-    // header
-    let header = _headerForEncoding
     try header.encode(into: &context)
     componentDescriptorOffset = context.index
 
