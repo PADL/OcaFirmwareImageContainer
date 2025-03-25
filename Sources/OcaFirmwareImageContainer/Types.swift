@@ -120,6 +120,9 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
     }
     let headerFlags: Flags = try await Flags(rawValue: context.decode())
     let modelCount: OcaUint16 = try await context.decode()
+    guard modelCount > 0 else {
+      throw OcaFirmwareImageContainerError.invalidModelCount
+    }
     let componentCount: OcaUint16 = try await context.decode()
 
     guard Int(headerSize) >= Self.Size + Int(modelCount) * 8 else {

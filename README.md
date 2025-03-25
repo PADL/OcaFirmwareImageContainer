@@ -10,9 +10,9 @@ Integers are encoded in little-endian byte order. This is a change from OCP.1, b
 struct {
     OcaUint32       MagicNumber;        // OcaFirmwareImageContainerHeaderMagicNumber = 0xCFF1_A00C
     OcaUint32       HeaderVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
-    OcaUint16       HeaderSize;         // size of this structure including model GUID trailer
+    OcaUint16       HeaderSize;         // size of this structure including models (16 + ModelCount * 8)
     OcaBitSet16     HeaderFlags;        // flags, unknown flags MUST be ignored
-    OcaUint16       ModelCount;         // number of models at end of header
+    OcaUint16       ModelCount;         // number of models at end of header, must be at leat 1
     OcaUint16       ComponentCount;     // number of component descriptors
     OcaModelGUID    Models[];           // devices this container applies to
 } OcaFirmwareImageContainerHeader;
@@ -39,21 +39,19 @@ struct {
 } OcaFirmwareImageContainer;
 ```
 
-A firmware image container file consists of a single `OcaFirmwareImageContainerHeader` follows by zero or more `OcaFirmwareImageContainerComponentDescriptor`s. Offsets MUST be aligned at 8 byte boundaries, to allow in-place decoding on 64-bit platforms. `headerSize` must be at least 24; any additional octets MUST be skipped and ignored. This allows for flags to gate future expansion without incrementing the header version.
-
-There MUST be no more than one component descriptor for a given component ID (i.e. duplicate component IDs are not permitted).
+A firmware image container file consists of a single `OcaFirmwareImageContainerHeader` follows by zero or more `OcaFirmwareImageContainerComponentDescriptor`s. Offsets MUST be aligned at 8 byte boundaries, to allow in-place decoding on 64-bit platforms. `HeaderSize` must be at least 24; any additional octets after the last `OcaModelGUID` MUST be skipped and ignored. This allows for flags to gate future expansion without incrementing the header version. `ModelCount` must be at least one.
 
 Two component descriptor flags are defined:
 
-`local (0x1)`: indicates that the component descriptor is to be processed locally and not sent to the device
-`critical (0x2)`: indicates that a local component descriptor MUST be understood by the controller
+`Local (0x1)`: indicates that the component descriptor is to be processed locally and not sent to the device
+`Critical (0x2)`: indicates that a local component descriptor MUST be understood by the controller
 
-The following component is defined for controller-side integrity verification. Controllers MUST validate that the container matches the model GUID of the device (after masking with modelCodeMask) as well as the container checksum. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data. The local flag MUST be set on the checksum component descriptor.
+The following component is defined for controller-side integrity verification. Controllers MUST validate that the container contains the model GUID of the device and the container checksum matches. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data. The `Local` flag MUST be set on the checksum component descriptor. The `Critical` flag MUST not be set on any local component descriptors that are not understood by the controller.
 
 Pseudo-code for calculating the checksum is provided below:
 
 ```
-calculateSHA512ContainerChecksum(
+CalculateSHA512ContainerChecksum(
     OcaFirmwareImageContainerHeader header,
     OcaUint16 count,
     OcaFirmwareImageContainerComponentDescriptor descriptors[count])
@@ -65,11 +63,11 @@ calculateSHA512ContainerChecksum(
     for (index = 0, index < count, index++) {
         checksum.update(descriptors[index].encode())
 
-        if (descriptors[index].component == OcaFirmwareImageContainerSHA512ChecksumComponent)
+        if (descriptors[index].Component == OcaFirmwareImageContainerSHA512ChecksumComponent)
             continue
 
-        checksum.update(header.start + descriptors[index].imageOffset ... imageSize)
-        checksum.update(header.start + descriptors[index].verifyOffset ... verifySize)
+        checksum.update(header.start + descriptors[index].ImageOffset ... ImageSize)
+        checksum.update(header.start + descriptors[index].VerifyOffset ... VerifySize)
     }
 
     return checksum.finalize()
@@ -80,5 +78,5 @@ Notes:
 
 * padding is not included in the checksum
 * the container checksum is controller-side only; it MUST NOT be sent over OCA
-* `imageOffset` and `imageSize` are zero; the checksum is placed at `verifyOffset`, and `verifySize` is 64
+* `ImageOffset` and `ImageSize` are zero; the checksum is placed at `VerifyOffset`, and `VerifySize` is 64
 * the component descriptor for the checksum is included as input into the checksum data

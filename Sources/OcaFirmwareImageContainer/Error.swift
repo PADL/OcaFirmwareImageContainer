@@ -26,6 +26,7 @@ public enum OcaFirmwareImageContainerError: Error {
   case unknownHeaderVersion
   case unknownComponent
   case unknownModelCode
+  case invalidModelCount
 
   case checksumVerificationFailed
   case signatureVerificationFailed
