@@ -157,6 +157,7 @@ public struct OcaFirmwareImageContainerComponentDescriptor: _OcaFirmwareImageCon
     }
 
     public static let local = Flags(rawValue: 1 << 0)
+    public static let critical = Flags(rawValue: 1 << 1)
   }
 
   public let component: OcaComponent
