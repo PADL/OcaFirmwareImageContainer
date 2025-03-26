@@ -12,7 +12,7 @@ struct {
     OcaUint32       HeaderVersion;      // OcaFirmwareImageContainerHeaderVersion1 = 1
     OcaUint16       HeaderSize;         // size of this structure including models (16 + ModelCount * 8)
     OcaBitSet16     HeaderFlags;        // flags, unknown flags MUST be ignored
-    OcaUint16       ModelCount;         // number of models at end of header, must be at leat 1
+    OcaUint16       ModelCount;         // number of models at end of header, must be at least 1
     OcaUint16       ComponentCount;     // number of component descriptors
     OcaModelGUID    Models[];           // devices this container applies to
 } OcaFirmwareImageContainerHeader;
