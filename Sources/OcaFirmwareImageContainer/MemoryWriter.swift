@@ -56,7 +56,7 @@ public final class OcaFirmwareImageContainerMemoryWriter: _OcaFirmwareImageConta
     models: [OcaModelGUID] = [.init(
       reserved: 0,
       mfrCode: .init(),
-      modelCode: 0
+      modelCode: (0, 0, 0, 0)
     )],
     components: [OcaFirmwareImageContainerMemoryComponent] = []
   ) throws

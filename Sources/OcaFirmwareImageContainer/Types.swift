@@ -22,7 +22,10 @@ extension OcaModelGUID: _OcaFirmwareImageContainerEncodable {
     try context.encode(integer: mfrCode.id.0)
     try context.encode(integer: mfrCode.id.1)
     try context.encode(integer: mfrCode.id.2)
-    try context.encode(integer: modelCode)
+    try context.encode(integer: modelCode.0)
+    try context.encode(integer: modelCode.1)
+    try context.encode(integer: modelCode.2)
+    try context.encode(integer: modelCode.3)
   }
 }
 
@@ -34,12 +37,15 @@ extension OcaModelGUID: _OcaFirmwareImageContainerDecodable {
     let mfrCode_id_0: OcaUint8 = try await context.decode()
     let mfrCode_id_1: OcaUint8 = try await context.decode()
     let mfrCode_id_2: OcaUint8 = try await context.decode()
-    let modelCode: OcaUint32 = try await context.decode()
+    let modelCode_0: OcaUint8 = try await context.decode()
+    let modelCode_1: OcaUint8 = try await context.decode()
+    let modelCode_2: OcaUint8 = try await context.decode()
+    let modelCode_3: OcaUint8 = try await context.decode()
 
     return Self(
       reserved: reserved,
       mfrCode: OcaOrganizationID((mfrCode_id_0, mfrCode_id_1, mfrCode_id_2)),
-      modelCode: modelCode
+      modelCode: (modelCode_0, modelCode_1, modelCode_2, modelCode_3)
     )
   }
 }
