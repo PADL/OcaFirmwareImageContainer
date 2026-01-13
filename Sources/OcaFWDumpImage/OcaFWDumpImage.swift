@@ -41,9 +41,9 @@ public final class InfernoFirmwareTool {
         print("Version:\t\(decoder.header.headerVersion.asHex)")
         print("Flags:\t\t\(decoder.header.headerFlags.rawValue.asHex)")
         let modelStrings = decoder.header.models.map { model in
-          "\t0x\(model)\n"
+          "0x\(model)"
         }
-        print("Models:\(modelStrings)")
+        print("Models:\t\t\(modelStrings.joined(separator: "\t"))")
         print("--------------------------------------------------------")
         for descriptor in decoder.componentDescriptors {
           print("Component:\t\(descriptor.component.asHex)")
