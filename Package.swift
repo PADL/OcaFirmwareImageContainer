@@ -20,11 +20,16 @@ let package = Package(
       name: "ocafw-dump-image",
       targets: ["OcaFWDumpImage"]
     ),
+    .executable(
+      name: "ocafw-extract-image",
+      targets: ["OcaFWExtractImage"]
+    ),
   ],
   dependencies: [
     .package(url: "https://github.com/PADL/SwiftOCA", branch: "main"),
     .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0"..<"4.0.0"),
     .package(url: "https://github.com/apple/swift-system", from: "1.2.1"),
+    .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
   ],
   targets: [
     // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -40,6 +45,13 @@ let package = Package(
     .executableTarget(
       name: "OcaFWDumpImage",
       dependencies: ["OcaFirmwareImageContainer"]
+    ),
+    .executableTarget(
+      name: "OcaFWExtractImage",
+      dependencies: [
+        "OcaFirmwareImageContainer",
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      ]
     ),
     .testTarget(
       name: "OcaFirmwareImageContainerTests",
