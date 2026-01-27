@@ -41,10 +41,11 @@ struct {
 
 A firmware image container file consists of a single `OcaFirmwareImageContainerHeader` follows by zero or more `OcaFirmwareImageContainerComponentDescriptor`s. Offsets MUST be aligned at 8 byte boundaries, to allow in-place decoding on 64-bit platforms. `HeaderSize` must be at least 24; any additional octets after the last `OcaModelGUID` MUST be skipped and ignored. This allows for flags to gate future expansion without incrementing the header version. `ModelCount` must be at least one.
 
-Two component descriptor flags are defined:
+Three component descriptor flags are defined:
 
 `Local (0x1)`: indicates that the component descriptor is to be processed locally and not sent to the device
 `Critical (0x2)`: indicates that a local component descriptor MUST be understood by the controller
+`SupportsUnsequenced (0x4)`: indicator to controller that firmware image data need not be applied sequentially
 
 The following component is defined for controller-side integrity verification. Controllers MUST validate that the container contains the model GUID of the device and the container checksum matches. However, these validation checks are advisory only: the checksum is not a cryptographic checksum, and an untrusted controller could always extract the images directly and update them over OCA. Devices MUST validate the image data using the corresponding verify data. The `Local` flag MUST be set on the checksum component descriptor. The `Critical` flag MUST not be set on any local component descriptors that are not understood by the controller.
 
