@@ -27,14 +27,14 @@ protocol _OcaFirmwareImageContainerReader {
   mutating func read<T>(
     count: Int,
     at offset: Int,
-    _ body: (UnsafeBufferPointer<UInt8>) async throws -> T
+    _ body: ([UInt8]) async throws -> T
   ) async throws -> T
 }
 
 extension _OcaFirmwareImageContainerReader {
   mutating func decode(
     count: Int,
-    _ body: (UnsafeBufferPointer<UInt8>) async throws -> ()
+    _ body: ([UInt8]) async throws -> ()
   ) async throws {
     try await read(count: count, at: index, body)
     index += count
@@ -95,7 +95,7 @@ public final class OcaFirmwareImageContainerDecoder: _OcaFirmwareImageContainerD
 
   public typealias ComponentCallback<T> = (
     OcaFirmwareImageContainerComponentDescriptor,
-    UnsafeBufferPointer<UInt8>,
+    [UInt8],
     [UInt8]
   ) async throws -> T
 

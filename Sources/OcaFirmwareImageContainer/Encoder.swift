@@ -74,16 +74,16 @@ extension _OcaFirmwareImageContainerWriter {
 final class OcaFirmwareImageContainerEncoder: _OcaFirmwareImageContainerEncodable,
   CustomStringConvertible
 {
-  public let headerFlags: OcaFirmwareImageContainerHeader.Flags
-  public let models: [OcaModelGUID]
-  public private(set) var components: [OcaFirmwareImageComponent] = []
-  var context: _OcaFirmwareImageContainerWriter? = nil
+  let headerFlags: OcaFirmwareImageContainerHeader.Flags
+  let models: [OcaModelGUID]
+  private(set) var components: [OcaFirmwareImageComponent] = []
+  var context: _OcaFirmwareImageContainerWriter?
   var _componentsDescriptorsWithOffsets: [
     OcaComponent: OcaFirmwareImageContainerComponentDescriptor
   ] =
     [:]
 
-  public var description: String {
+  var description: String {
     "OcaFirmwareImageContainerEncoder(header: \(_headerForEncoding), componentDescriptors: \(_componentsDescriptorsWithOffsets))"
   }
 

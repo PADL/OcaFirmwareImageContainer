@@ -37,12 +37,12 @@ public final class OcaFirmwareImageContainerMemoryReader: _OcaFirmwareImageConta
   func read<T>(
     count: Int,
     at offset: Int,
-    _ body: (UnsafeBufferPointer<UInt8>) async throws -> T
+    _ body: ([UInt8]) async throws -> T
   ) async throws -> T {
     guard data.count >= offset + count else {
       throw OcaFirmwareImageContainerError.invalidOffset
     }
-    let slice = data[offset..<(offset + count)].withUnsafeBufferPointer { $0 }
+    let slice = Array(data[offset..<(offset + count)])
     return try await body(slice)
   }
 }

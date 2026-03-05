@@ -47,13 +47,13 @@ struct OcaFWExtractImage: AsyncParsableCommand {
       )
     }
 
-    try await decoder.withComponent(at: component) { descriptor, imageData, verifyData in
+    try await decoder.withComponent(at: component) { _, imageData, verifyData in
       let imageOutputURL = URL(fileURLWithPath: output)
       let verifyOutputURL = URL(
         fileURLWithPath: output + ".sig"
       )
 
-      let imageBytes = Data(buffer: imageData)
+      let imageBytes = Data(imageData)
       try imageBytes.write(to: imageOutputURL)
       print("Wrote component image (\(imageBytes.count) bytes) to \(imageOutputURL.path)")
 
