@@ -58,7 +58,7 @@ public struct OcaFirmwareImageContainerHeader: _OcaFirmwareImageContainerEncodab
   private static let OcaFirmwareImageContainerHeaderMagicNumber: OcaUint32 = 0xCFF1_A00C
   private static let Size = 16 // without model GUID trailer
 
-  public struct Flags: OptionSet {
+  public struct Flags: OptionSet, Sendable {
     public typealias RawValue = OcaBitSet16
 
     public var rawValue: OcaBitSet16
@@ -156,7 +156,7 @@ public struct OcaFirmwareImageContainerComponentDescriptor: _OcaFirmwareImageCon
 {
   static let Size = 48
 
-  public struct Flags: OptionSet {
+  public struct Flags: OptionSet, Sendable {
     public typealias RawValue = OcaBitSet16
 
     public var rawValue: OcaBitSet16
