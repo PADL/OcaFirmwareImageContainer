@@ -26,7 +26,7 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/PADL/SwiftOCA", branch: "main"),
+    .package(url: "https://github.com/PADL/SwiftOCA", branch: "property-key-path-tables"),
     .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0"..<"4.0.0"),
     .package(url: "https://github.com/apple/swift-system", from: "1.2.1"),
     .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
